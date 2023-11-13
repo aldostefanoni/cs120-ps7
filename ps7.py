@@ -208,12 +208,9 @@ def sat_3_coloring(G):
     for node in range(G.N):
         for edge in G.edges[node]:
             for color in range(1, MAX_COLOR + 1):
-                part1 = (node * (MAX_COLOR + 1)) + color
-                part2 = (edge * (MAX_COLOR + 1)) + color
-            
-            solver.add_clause([-part1, -part2])
-
-    # TODO: Add the clauses to the solver
+                part1 = node * (MAX_COLOR + 1) + color
+                part2 = edge * (MAX_COLOR + 1) + color
+                solver.add_clause([-part1, -part2])
 
     # Attempt to solve, return None if no solution possible
     if not solver.solve():
@@ -224,12 +221,12 @@ def sat_3_coloring(G):
     # v2 = True, v3 = False, etc.
     solution = solver.get_model()
 
-    visited = set()
     for var in solution:
         if var > 0:
             node = var // (MAX_COLOR + 1)
             color = (var % (MAX_COLOR + 1)) - 1
             G.colors[node] = color
+
     return G.colors
 
 # Feel free to add miscellaneous tests below!
