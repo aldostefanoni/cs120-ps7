@@ -7,9 +7,11 @@ Before you start: Read the README and the Graph implementation below.
 
 class Graph:
     '''
-    A graph data structure with number of nodes N, list of sets of edges, and a list of color labels.
+    A graph data structure with number of nodes N, list of sets of edges, 
+    and a list of color labels.
     Nodes and colors are both 0-indexed.
-    For a given node u, its edges are located at self.edges[u] and its color is self.color[u].
+    For a given node u, its edges are located at self.edges[u] and its color 
+    is self.color[u].
     '''
 
     # Initializes the number of nodes, sets of edges for each node, and colors
@@ -106,14 +108,14 @@ def exhaustive_search_coloring(G, k=3):
     return None
 
 
-
 '''
     We've implemented bfs_2_coloring for you below.
     You don't need to implement any extra code for this part.
 '''
 
 # Given an instance of the Graph class G and a subset of precolored nodes,
-# Assigns precolored nodes to have color 2, and attempts to color the rest using colors 0 and 1.
+# Assigns precolored nodes to have color 2, and attempts to color the rest 
+# using colors 0 and 1.
 #
 # Precondition: Assumes that the precolored_nodes form an independent set.
 # If successful, modifies G.colors and returns the coloring.
@@ -160,7 +162,8 @@ def bfs_2_coloring(G, precolored_nodes=None):
     We've implemented iset_bfs_3_coloring for you below.
     You don't need to implement any extra code for this part.
 '''
-# Given an instance of the Graph class G and a subset of precolored nodes, searches for a 3 coloring
+# Given an instance of the Graph class G and a subset of precolored nodes, 
+# searches for a 3 coloring
 def iset_bfs_3_coloring(G):
     for set_size in range(G.N // 3 + 1):
         for combination in combinations(range(G.N), set_size):
@@ -173,14 +176,17 @@ def iset_bfs_3_coloring(G):
 
 '''
     Part A: Implement the reduction to SAT. 
-    Here, you should use the SAT solver that we've defined to add clauses, and use the built-in get_model function
-    to find the solution if one exists.
+    Here, you should use the SAT solver that we've defined to add clauses, and 
+    use the built-in get_model function to find the solution if one exists.
     Link to documentation: https://pysathq.github.io/docs/html/api/solvers.html#pysat.solvers.Solver.get_model
     Hint: There are three parts to this problem.
     1. Transform the graph into an input that can be fed into the SAT solver.
-    2. Run the solver using the solver.solve() and solver.get_model() functions. We have added this part for you.
-    3. Transform the solver output into a valid coloring if one exists, else return None.
-    When you're finished, check your work by running python3 -m ps8_color_tests 3.
+    2. Run the solver using the solver.solve() and solver.get_model() functions. 
+    We have added this part for you.
+    3. Transform the solver output into a valid coloring if one exists, else 
+    return None.
+    When you're finished, check your work by running 
+    python3 -m ps8_color_tests 3.
     Don't worry if some of your tests time out: that is expected.
 '''
 
@@ -189,6 +195,23 @@ def iset_bfs_3_coloring(G):
 # If no coloring is possible, resets all of G's colors to None and returns None.
 def sat_3_coloring(G):
     solver = Glucose3()
+    MAX_COLOR = 3
+
+    #Each vertex must be assigned a color so add a big clause
+    for node in range(G.N):
+        vertex_clause = []
+        for color in range(1, MAX_COLOR + 1):
+              vertex_clause.append(node * (MAX_COLOR + 1) + color) 
+        solver.add_clause(vertex_clause)
+
+    #add a clause for each edge (¬xui ∨ ¬xvi)
+    for node in range(G.N):
+        for edge in G.edges[node]:
+            for color in range(1, MAX_COLOR + 1):
+                part1 = (node * (MAX_COLOR + 1)) + color
+                part2 = (edge * (MAX_COLOR + 1)) + color
+            
+            solver.add_clause([-part1, -part2])
 
     # TODO: Add the clauses to the solver
 
@@ -197,11 +220,16 @@ def sat_3_coloring(G):
         G.reset_colors()
         return None
 
-    # Accesses the model in form [-v1, v2, -v3 ...], which denotes v1 = False, v2 = True, v3 = False, etc.
+    # Accesses the model in form [-v1, v2, -v3 ...], which denotes v1 = False, 
+    # v2 = True, v3 = False, etc.
     solution = solver.get_model()
 
-    # TODO: If a solution is found, convert it into a coloring and update G.colors
-
+    visited = set()
+    for var in solution:
+        if var > 0:
+            node = var // (MAX_COLOR + 1)
+            color = (var % (MAX_COLOR + 1)) - 1
+            G.colors[node] = color
     return G.colors
 
 # Feel free to add miscellaneous tests below!
