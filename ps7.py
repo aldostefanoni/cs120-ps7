@@ -197,20 +197,20 @@ def sat_3_coloring(G):
     solver = Glucose3()
     MAX_COLOR = 3
 
-    #Each vertex must be assigned a color so add a big clause
+    # Each vertex must be assigned a color
     for node in range(G.N):
-        vertex_clause = []
+        color_clause = []
         for color in range(1, MAX_COLOR + 1):
-              vertex_clause.append(node * (MAX_COLOR + 1) + color) 
-        solver.add_clause(vertex_clause)
+              color_clause.append(node * (MAX_COLOR + 1) + color) 
+        solver.add_clause(color_clause)
 
-    #add a clause for each edge (¬xui ∨ ¬xvi)
+    # For each edge add (not edge1,color_i or not edge2,color_i)
     for node in range(G.N):
         for edge in G.edges[node]:
             for color in range(1, MAX_COLOR + 1):
-                part1 = node * (MAX_COLOR + 1) + color
-                part2 = edge * (MAX_COLOR + 1) + color
-                solver.add_clause([-part1, -part2])
+                term1 = node * (MAX_COLOR + 1) + color
+                term2 = edge * (MAX_COLOR + 1) + color
+                solver.add_clause([-term1, -term2])
 
     # Attempt to solve, return None if no solution possible
     if not solver.solve():
